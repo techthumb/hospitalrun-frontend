@@ -1,24 +1,29 @@
 ---
-language: node_js
-node_js:
-  - "0.12"
+sudo: required
 
-sudo: false
+language: go
 
-cache:
-  directories:
-    - node_modules
+services:
+  - docker
+
+env:
+  global:
+    - DOCKER_VERSION=1.10.1-0~trusty
+    - DOCKER_COMPOSE_VERSION=1.6.0
 
 before_install:
-  - "npm config set spin false"
-  - "npm install -g npm@^2"
-  - "gem install scss_lint"
+  # list docker-engine versions
+  - apt-cache madison docker-engine
 
-install:
-  - npm install -g bower
-  - npm install -g phantomjs-prebuilt
-  - npm install
-  - bower install
+  # upgrade docker-engine to specific version
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine=${DOCKER_VERSION}
+
+  # reinstall docker-compose at specific version
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
 script:
-  - npm test
+  - docker-compose build
+  - docker-compose run web make -f Makefile.docker test

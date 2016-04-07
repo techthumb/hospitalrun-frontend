@@ -1,0 +1,17 @@
+PATH       := node_modules/.bin:$(PATH)
+SHELL      := /usr/bin/env bash
+
+node_modules:
+	npm install
+
+bower: node_modules
+	bower install --allow-root
+
+server/config.js:
+	cp server/config.docker.js server/config.js
+
+.PHONY serve: bower server/config.js
+	ember serve
+
+.PHONY test: bower server/config.js
+	ember test
